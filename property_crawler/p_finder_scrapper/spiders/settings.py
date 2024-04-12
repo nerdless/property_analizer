@@ -1,0 +1,37 @@
+
+PROPERTY_KIND = ["casa", "terreno"]
+
+MEXICAN_STATES = [
+        # "aguascalientes",
+        # "baja-california",
+        # "baja-california-sur",
+        "campeche",
+        "chiapas",
+        # "chihuahua",
+        # "coahuila",
+        # "colima",
+        # "durango",
+        # "guanajuato",
+        # "guerrero",
+        # "hidalgo",
+        "jalisco",
+        "distrito-federal",
+        "mexico",
+        # "michoacan",
+        # "morelos",
+        "nayarit",
+        # "nuevo-leon",
+        "oaxaca",
+        "puebla",
+        "queretaro",
+        "quintana-roo",
+        # "san-luis-potosi",
+        # "sinaloa",
+        # "sonora",
+        "tabasco",
+        # "tamaulipas",
+        # "tlaxcala",
+        "veracruz",
+        "yucatan",
+        # "zacatecas"
+    ]
