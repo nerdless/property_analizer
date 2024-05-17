@@ -18,10 +18,13 @@ TITLE_XPATH = "//meta[@property='og:title']/@content"
 JSON_XPATH = "//script[@type='application/ld+json']/text()"
 PRICE_XPATH = "//div[@class='prices-and-fees__price']/text() | //span[@class='price-info__value']/text()"
 COMMUNITY_FEES_XPATH = "//div[@class='prices-and-fees__community-fees__community-price']/text()"
-PLOT_AREA_XPATH = "//span[@data-test='plot-area-value']/text() | //td[@class='size']/div/text() |//div[@class='place-features']//span[@data-test='floor-value']//text()"
+PLOT_AREA_XPATH1 = "//span[@data-test='plot-area-value']/text()"
+PLOT_AREA_XPATH2 = "//span[@data-test='floor-value']/text()"
 PUBLICATION_DATE_XPATH = "//div[@class='left-details']/div[@class='date']/text()"
 IMAGES_XPATH = "//div[@class='photos']//div[@class='swiper-slide']/img/@src | //div[@class='swiper-slide']/img/@src"
 PUBLISHER_NAME_XPATH = "//div[@class='agency']//span[@data-test='agency-name']/text()"
+PUBLISHER_PHONE_XPATH = "//div[@class='agency__info']/a[@class='agency__phone']/text()"
+PUBLISHER_URL = "//div[@class='form-header']//span[@data-test='agency-name']/following-sibling::a/@href"
 CONDITION_XPATH = "//div[@class='place-features']//div[@class='condition']/span[2]"
 CONSTRUCTION_YEAR_XPATH = "//div[@class='place-features']//div[@class='year']/span[2]"
 SECONDARY_JSON = "//script[contains(text(),'coordinates')]//text()"
@@ -50,10 +53,11 @@ class PropertiesSpider(scrapy.Spider):
         }
 
     def start_requests(self):
-        for state in ["yucatan", "campeche", "oaxaca"]:
+        for state in ["yucatan"]:
             for kind in PROPERTY_KIND:
                 meta = {"state": state, "kind": kind}
-                yield scrapy.Request(f"https://www.lamudi.com.mx/{state}/{kind}/for-sale/?sorting=newest", self.parse, meta=meta)
+                # yield scrapy.Request(f"https://www.lamudi.com.mx/{state}/{kind}/for-sale/?sorting=newest", self.parse, meta=meta)
+                yield scrapy.Request(f"https://www.lamudi.com.mx/{state}/{kind}/for-sale/", self.parse, meta=meta)
 
     def parse(self, response): 
         """ Request a 'url_n' to gather url of the listed properties on the given 'url_n'    
@@ -91,7 +95,9 @@ class PropertiesSpider(scrapy.Spider):
                                                         "longitude": property_info.get("mapData", {}).get("adLocationData", {}).get("coordinates", {}).get("longitude")}
                                                         }
                                                         )
-                                
+            plot_area = response.xpath(PLOT_AREA_XPATH1).get()
+            if not plot_area:
+                plot_area = response.xpath(PLOT_AREA_XPATH2).get()
             property = Property()
             property["url"] = response.url
             property["state"] = response.meta["state"]
@@ -99,7 +105,7 @@ class PropertiesSpider(scrapy.Spider):
             property["title"] = response.xpath(TITLE_XPATH).get()
             property["price"] = response.xpath(PRICE_XPATH).get()
             property["community_fee"] = response.xpath(COMMUNITY_FEES_XPATH).get()
-            property["plot_area"] = response.xpath(PLOT_AREA_XPATH).get()
+            property["plot_area"] = plot_area
             property["build_area"] = property_info.get("floorSize", {}).get("value")
             property["rooms"] = property_info.get("numberOfBedrooms")
             property["bathrooms"] = property_info.get("numberOfBathroomsTotal")
@@ -113,6 +119,8 @@ class PropertiesSpider(scrapy.Spider):
             property["image"] = property_info.get("image")
             property["image_urls"] = response.xpath(IMAGES_XPATH).getall()
             property["publisher_name"] = response.xpath(PUBLISHER_NAME_XPATH).get()
+            property["publisher_phone"] = response.xpath(PUBLISHER_PHONE_XPATH).get()
+            property["publisher_url"] = response.xpath(PUBLISHER_URL).get()
             property["condition"] = response.xpath(CONDITION_XPATH).get()
             property["construction_year"] = response.xpath(CONSTRUCTION_YEAR_XPATH).get()
             property["amenities"] = [amenity["name"] for amenity in property_info.get("amenityFeature", [])]

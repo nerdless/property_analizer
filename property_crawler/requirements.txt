@@ -12,3 +12,5 @@ scrapy==2.7.1
 tqdm==4.64.0
 xmltodict==0.13.0
 Twisted==22.10.0
+openai==1.20.0
+pandas==2.0.3

@@ -1,5 +1,5 @@
 
-PROPERTY_KIND = ["casa", "terreno"]
+PROPERTY_KIND = ["terreno"]
 
 MEXICAN_STATES = [
         # "aguascalientes",

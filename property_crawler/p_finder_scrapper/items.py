@@ -29,6 +29,8 @@ class Property(Item):
     image = Field()
     image_urls = Field()
     publisher_name = Field()
+    publisher_phone = Field()
+    publisher_url = Field()
     phone = Field()
     email = Field()
     condition = Field()
