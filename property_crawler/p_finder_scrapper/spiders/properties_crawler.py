@@ -44,10 +44,10 @@ class PropertiesSpider(scrapy.Spider):
     allowed_domains = ['www.lamudi.com.mx']
     #creo que tengo que cambiar los siguientes parametros
     custom_settings= {
-        'AUTOTHROTTLE_START_DELAY': 3,
-        'AUTOTHROTTLE_MAX_DELAY': 15.0,
+        'AUTOTHROTTLE_START_DELAY': 15,
+        'AUTOTHROTTLE_MAX_DELAY': 40,
         'CONCURRENT_REQUEST_PER_DOMAIN': 1,
-        'DOWNLOAD_DELAY': 3,
+        'DOWNLOAD_DELAY': 40,
         'CONCURRENT_REQUEST_PER_IP':1,
         'ROBOTSTXT_OBEY': False
         }

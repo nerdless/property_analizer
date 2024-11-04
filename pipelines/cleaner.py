@@ -9,17 +9,65 @@ import numpy as np
 from openai import OpenAI
 client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-crawling_date = "2024-05-16"
-input_file = "prop_data-2024-05-17.json"
+crawling_date = "2024-05-28"
+input_file = "prop_data-2024-05-28.json"
 db_file = "prop_data.db"
 data_pickle = "prop_data.pkl"
 
 
 contacted = [
-    "+529851124723"
+    "+529851124723",
+    "+529997490467",
+    "+529991384600",
+    "+529993350294",
+    "+529992359443",
+    "+529992505514",
+    "9993094963",
+    "+529991392940",
+    "+529994538999",
+    "+529999551484",
+    "+529993709158",
+    "+529993491711",
+    "9851001222",
+    "9851096721",
+    "+529993383135",
+    "+529221267836",
+    "+529999900127",
+    "+52999 994 3786",
+    "+529999935424",
+    "+525568278382",
+    "+529992505514"
 ]
 
-
+municipalities_yucatan = [
+    "Celestún",
+    "Umán",
+    "Chocholá",
+    "Maxcanú",  #
+    "Kopomá",  #
+    "Opichén",
+    "Abalá",
+    "Muna",
+    "Chapab",
+    "Sacalum",
+    "Tecoh",
+    "Titee",
+    "Cuzamá",
+    "Homún",
+    "Huhí",
+    "Kantunil",
+    "Izamal",
+    "Dzoncauich",
+    "Tekal de Venegas",
+    "Quintana Roo",
+    "Sotuta",
+    "Sudzal",
+    "Tunkás",
+    "Cenotillo",
+    "Buctzotz",
+    "Dzilam González",
+    "Dzilam de Bravo",
+]
 
 
 class PropertyRepo:
@@ -75,9 +123,9 @@ PROMPT_TERRENO = "Eres un asistente útil, tomas una descripción de un terreno 
 
 LAND_PROMPT = "You are helpful assistant, you take a land description and return a JSON with parsed data about the land. The data should include the following fields: price, currency, plot_area, price_per_square_meter, publication_date and easybroker_id. The data should be cleaned and normalized. The price, plot_area and price_per_square_meter should be floats. The publication_date should be a datetime object. The easybroker_id is a string. If there is no information, or you are not sure, do not include the field in the JSON."
 
-def parse_description(description, property_kind, publication_date, crawling_date):
+def parse_description(description, property_kind, publication_date, crawling_date, model="gpt-4o"):
     response = client.chat.completions.create(
-    model="gpt-3.5-turbo",
+    model=model,
     response_format={ "type": "json_object" },
     temperature= 0,
     messages=[
@@ -153,12 +201,23 @@ terrenos_yucatan = result_df[(result_df.state == "yucatan") & (result_df.propert
 
 terrenos_yucatan["price_per_m2"] = terrenos_yucatan["price_per_m2"].combine_first(terrenos_yucatan["llm_price_per_m2"])
 terrenos_yucatan["clean_plot_area"] = terrenos_yucatan["clean_plot_area"].combine_first(terrenos_yucatan["llm_plot_area"])
+terrenos_yucatan["clean_price"] = terrenos_yucatan["clean_price"].combine_first(terrenos_yucatan["price_per_m2"] * terrenos_yucatan["clean_plot_area"])
+terrenos_yucatan["clean_price"] = terrenos_yucatan["clean_price"].combine_first(terrenos_yucatan["llm_price"])
+terrenos_yucatan["price_per_m2"] = terrenos_yucatan["price_per_m2"].combine_first(terrenos_yucatan["clean_price"] * terrenos_yucatan["clean_plot_area"])
+
+
 min_plot = 1000
-
-
 big_land = terrenos_yucatan[(terrenos_yucatan.clean_plot_area > min_plot)&(~terrenos_yucatan.publisher_phone.isin(contacted))]
 
 big_land.sort_values("price_per_m2", ascending=True).iloc[0]
+
+max_price = 600000
+cheap_land = big_land[(big_land.clean_price < max_price)]
+
+cheap_land.sort_values("price_per_m2", ascending=True).iloc[0]
+
+
+munis = terrenos_yucatan[(terrenos_yucatan.municipality.isin(municipalities_yucatan))&(pd.isnull(terrenos_yucatan.price_per_m2))]
 
 
 for i, row in terrenos_yucatan.iterrows():
